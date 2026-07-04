@@ -184,19 +184,9 @@ path as "a graph connection exists" rather than "this is a documented mechanism.
 
 ## 5. Summary diagram
 
-```
- User question
-      │
-      ▼
- ┌─────────────┐   tool call (JSON)   ┌───────────┐   SQL over Parquet   ┌────────────────────┐
- │  OpenAI LLM │ ───────────────────▶ │  chat.py  │ ───────────────────▶ │  kg.py (DuckDB)     │
- │ (reasoning, │                      │ (dispatch)│                      │  nodes.parquet      │
- │  synthesis) │ ◀─────────────────── │           │ ◀─────────────────── │  edges.parquet      │
- └─────────────┘   tool result (JSON) └───────────┘   rows / JSON props  └────────────────────┘
-      │
-      ▼
- Final answer, grounded in retrieved rows
-```
+![Summary diagram: User question flows down to the OpenAI LLM, which exchanges tool calls (JSON) and tool results (JSON) with chat.py, which exchanges SQL over Parquet and rows/JSON properties with kg.py (DuckDB) over nodes.parquet/edges.parquet; the LLM then produces the final answer.](diagram.png)
+
+(Source: [`diagram.tex`](diagram.tex), a standalone TikZ diagram — compile with `pdflatex diagram.tex`.)
 
 ## Appendix A: All edge labels (entity-pair types)
 
