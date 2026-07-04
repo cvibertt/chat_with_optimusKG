@@ -143,3 +143,87 @@ evidence score rather than insertion order.
       ▼
  Final answer, grounded in retrieved rows
 ```
+
+## Appendix A: All edge labels (entity-pair types)
+
+The `label` column on `edges.parquet` is the coarse entity-pair category. All 27 distinct
+values, with edge counts:
+
+| label | edge count | entity types |
+|---|---|---|
+| DIS-GEN | 9,734,774 | Disease–Gene |
+| ANA-GEN | 8,787,955 | Anatomy–Gene |
+| DRG-DRG | 1,345,376 | Drug–Drug |
+| PHE-GEN | 793,279 | Phenotype–Gene |
+| GEN-GEN | 327,924 | Gene–Gene |
+| BPO-GEN | 158,410 | Biological Process–Gene |
+| DIS-PHE | 157,144 | Disease–Phenotype |
+| CCO-GEN | 105,309 | Cellular Component–Gene |
+| MFN-GEN | 90,933 | Molecular Function–Gene |
+| DRG-DIS | 70,380 | Drug–Disease |
+| PWY-GEN | 46,977 | Pathway–Gene |
+| BPO-BPO | 44,494 | Biological Process–Biological Process |
+| DIS-DIS | 44,215 | Disease–Disease |
+| PHE-PHE | 24,862 | Phenotype–Phenotype |
+| DRG-GEN | 20,694 | Drug–Gene |
+| ANA-ANA | 17,082 | Anatomy–Anatomy |
+| DRG-PHE | 13,758 | Drug–Phenotype |
+| MFN-MFN | 12,587 | Molecular Function–Molecular Function |
+| CCO-CCO | 4,639 | Cellular Component–Cellular Component |
+| EXP-GEN | 2,989 | Exposure–Gene |
+| PWY-PWY | 2,819 | Pathway–Pathway |
+| EXP-EXP | 2,443 | Exposure–Exposure |
+| EXP-DIS | 2,391 | Exposure–Disease |
+| EXP-BPO | 2,260 | Exposure–Biological Process |
+| DRG-BPO | 62 | Drug–Biological Process |
+| EXP-MFN | 47 | Exposure–Molecular Function |
+| EXP-CCO | 13 | Exposure–Cellular Component |
+
+## Appendix B: All relations
+
+The `relation` column is the actual semantic relationship, finer-grained than `label`.
+All 36 distinct values, with edge counts:
+
+| relation | edge count |
+|---|---|
+| ASSOCIATED_WITH | 10,531,730 |
+| EXPRESSION_PRESENT | 6,616,463 |
+| EXPRESSION_ABSENT | 2,171,492 |
+| SYNERGISTIC_INTERACTION | 1,341,086 |
+| INTERACTS_WITH | 734,862 |
+| PHENOTYPE_PRESENT | 157,144 |
+| PARENT | 95,711 |
+| IS_A | 61,720 |
+| INDICATION | 58,690 |
+| CONTRAINDICATION | 19,997 |
+| TARGET | 9,465 |
+| ENZYME | 4,857 |
+| TRANSPORTER | 2,764 |
+| LINKED_TO | 2,391 |
+| OFF_LABEL_USE | 1,262 |
+| INHIBITOR | 845 |
+| CARRIER | 711 |
+| ADVERSE_DRUG_REACTION | 574 |
+| POSITIVE_ALLOSTERIC_MODULATOR | 564 |
+| AGONIST | 499 |
+| ANTAGONIST | 475 |
+| BLOCKER | 241 |
+| POSITIVE_MODULATOR | 108 |
+| MODULATOR | 35 |
+| PARTIAL_AGONIST | 35 |
+| STABILISER | 21 |
+| NEGATIVE_ALLOSTERIC_MODULATOR | 17 |
+| ALLOSTERIC_ANTAGONIST | 16 |
+| OPENER | 10 |
+| ACTIVATOR | 7 |
+| RELEASING_AGENT | 6 |
+| INVERSE_AGONIST | 6 |
+| BINDING_AGENT | 4 |
+| NEGATIVE_MODULATOR | 3 |
+| SUBSTRATE | 3 |
+| DEGRADER | 2 |
+
+Most volume is concentrated in 5 relations (`ASSOCIATED_WITH`, `EXPRESSION_PRESENT`/
+`EXPRESSION_ABSENT`, `SYNERGISTIC_INTERACTION`, `INTERACTS_WITH`); the rest — mostly
+drug-mechanism terms like `AGONIST`, `ANTAGONIST`, `INHIBITOR` — are long-tail but
+semantically precise for pharmacology-specific queries.
