@@ -37,7 +37,7 @@ DuckDB reads Parquet natively and can do substring search, joins, and JSON extra
 ## 2. How the LLM connects to the KG
 
 The LLM (OpenAI, via `chat.py`) never touches Parquet, SQL, or DuckDB directly. It only
-sees five **tool/function definitions** — a JSON schema describing what each tool takes and
+sees seven **tool/function definitions** — a JSON schema describing what each tool takes and
 returns:
 
 | tool | what it does under the hood |
@@ -119,6 +119,14 @@ Question: *"What genes are associated with Parkinson disease?"*
 Every fact in the final answer (gene names, ids, scores) traces back to a specific SQL
 query result from step 2 or 4 — the LLM's job in this pipeline is orchestration and
 natural-language synthesis, not recalling biomedical facts from its own training data.
+
+A follow-up question like *"what are the strongest gene associations for Parkinson
+disease?"* runs the same shape of loop but calls `rank_neighbors` instead of
+`get_neighbors` in step 4, since the model recognizes "strongest" as a request to sort by
+`evidence_score` rather than return an arbitrary slice. Against the real graph this
+correctly surfaces `LRRK2`, `SNCA`, `PRKN`, `PINK1`, `PARK7`, and `GBA1` — the genes
+established in the literature as most strongly linked to Parkinson's disease — ranked by
+evidence score rather than insertion order.
 
 ## 5. Summary diagram
 
