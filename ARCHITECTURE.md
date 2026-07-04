@@ -128,6 +128,60 @@ correctly surfaces `LRRK2`, `SNCA`, `PRKN`, `PINK1`, `PARK7`, and `GBA1` — the
 established in the literature as most strongly linked to Parkinson's disease — ranked by
 evidence score rather than insertion order.
 
+## 4b. Worked example: indirect connections with `find_paths`
+
+Question: *"Is there any indirect connection between cetirizine and Parkinson disease?
+There's no direct edge between them."*
+
+```
+1. User → LLM: "is there any indirect connection between cetirizine and Parkinson
+   disease? there's no direct edge between them"
+
+2. LLM → tool call: search_nodes(query="cetirizine", label="DRG")
+   kg.py runs:
+     SELECT id, label, name FROM nodes
+     WHERE label = 'DRG' AND name ILIKE '%cetirizine%'
+   → returns: [{"id": "CHEMBL1000", "type": "Drug", "name": "CETIRIZINE"}, ...]
+
+3. LLM → tool call: search_nodes(query="Parkinson", label="DIS")
+   kg.py runs:
+     SELECT id, label, name FROM nodes
+     WHERE label = 'DIS' AND name ILIKE '%Parkinson%'
+   → returns: [{"id": "MONDO_0005180", "type": "Disease", "name": "Parkinson disease"}]
+
+4. Tool results → LLM (now has both real node ids)
+
+5. LLM → tool call: find_paths(id_a="CHEMBL1000", id_b="MONDO_0005180")
+   kg.py runs a fan-out-capped BFS over edges.parquet, expanding both
+   directions per hop (see kg.py:find_paths), and returns the first path found:
+     {
+       "path": [
+         {"node_id": "CHEMBL1000", "name": "CETIRIZINE"},
+         {"node_id": "CHEMBL1008", "name": "BEPRIDIL",
+          "relation_from_previous": "SYNERGISTIC_INTERACTION"},
+         {"node_id": "CHEMBL1060", "name": "SODIUM PHOSPHATE",
+          "relation_from_previous": "SYNERGISTIC_INTERACTION"},
+         {"node_id": "MONDO_0005180", "name": "Parkinson disease",
+          "relation_from_previous": "INDICATION"}
+       ],
+       "hops": 3
+     }
+
+6. Tool result → LLM (now has a concrete 3-hop chain of real edges)
+
+7. LLM → final text answer, walking the chain hop by hop: cetirizine has a
+   SYNERGISTIC_INTERACTION with bepridil, which has a SYNERGISTIC_INTERACTION with
+   sodium phosphate, which is an INDICATION for Parkinson disease. No edge or node in
+   the answer was invented; every hop is a row `find_paths` actually returned.
+```
+
+This example illustrates the tradeoff built into `find_paths`: it guarantees a
+*structurally real* path (every edge exists in the graph), but not a *biologically
+meaningful* one, since the search has no notion of relevance beyond fan-out order. Here
+the connection runs through two unrelated small molecules and is not evidence of a real
+pharmacological relationship. When using `find_paths`, the assistant should present the
+path as "a graph connection exists" rather than "this is a documented mechanism."
+
 ## 5. Summary diagram
 
 ```
