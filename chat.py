@@ -24,9 +24,14 @@ functions, cellular components, pathways, and environmental exposures).
 
 Use the tools to look up real nodes and relationships before answering questions about biomedical \
 entities or their relationships. Always resolve a name to a node id via search_nodes before calling \
-get_node or get_neighbors. Cite node ids and relation types in your answer. If a search returns \
-multiple plausible matches, briefly disambiguate or ask the user which one they mean rather than \
-guessing.
+get_node, get_neighbors, rank_neighbors, find_paths, or get_edges_between. Cite node ids and relation \
+types in your answer. If a search returns multiple plausible matches, briefly disambiguate or ask the \
+user which one they mean rather than guessing.
+
+Prefer rank_neighbors over get_neighbors when the user asks for the "strongest"/"top"/"most \
+important" associations, since it sorts by a numeric evidence property instead of returning an \
+arbitrary slice. Use find_paths when the user asks how two entities are connected indirectly (e.g. \
+"how might this drug help this disease") and get_edges_between only found no direct edge.
 """
 
 TOOLS = [
@@ -81,6 +86,39 @@ TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "rank_neighbors",
+            "description": "Get a node's neighbors ranked by a numeric property (e.g. evidence_score, evidence_count, disgenet_score). Edges missing that property sort last. Use this instead of get_neighbors when the user wants the strongest/top associations.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "node_id": {"type": "string"},
+                    "relation": {"type": "string", "description": "Optional relation type filter, e.g. ASSOCIATED_WITH."},
+                    "sort_by": {"type": "string", "description": "Numeric property key to sort by, e.g. evidence_score, evidence_count.", "default": "evidence_score"},
+                    "top_n": {"type": "integer", "default": 10},
+                },
+                "required": ["node_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "find_paths",
+            "description": "Find a short path (up to max_hops edges, in either direction) connecting two node ids that may not be directly linked. Useful for 'how are X and Y related' questions when get_edges_between finds nothing direct.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "id_a": {"type": "string"},
+                    "id_b": {"type": "string"},
+                    "max_hops": {"type": "integer", "default": 3, "description": "Max path length in edges (keep <= 3 for reasonable latency)."},
+                },
+                "required": ["id_a", "id_b"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "get_edges_between",
             "description": "Get direct edges (either direction) between two specific node ids.",
             "parameters": {
@@ -104,6 +142,8 @@ DISPATCH = {
     "search_nodes": lambda i: kg.search_nodes(i["query"], i.get("label"), i.get("limit", 10)),
     "get_node": lambda i: kg.get_node(i["node_id"]),
     "get_neighbors": lambda i: kg.get_neighbors(i["node_id"], i.get("relation"), i.get("limit", 25)),
+    "rank_neighbors": lambda i: kg.rank_neighbors(i["node_id"], i.get("relation"), i.get("sort_by", "evidence_score"), i.get("top_n", 10)),
+    "find_paths": lambda i: kg.find_paths(i["id_a"], i["id_b"], i.get("max_hops", 3)),
     "get_edges_between": lambda i: kg.get_edges_between(i["id_a"], i["id_b"]),
     "graph_stats": lambda i: kg.graph_stats(),
 }

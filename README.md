@@ -32,7 +32,20 @@ python chat.py
 
 Ask questions like "what genes are associated with Parkinson disease?" — the assistant
 resolves entity names to graph node ids via `search_nodes`, then walks relationships via
-`get_neighbors`/`get_edges_between`, and answers citing real node ids and relation types.
+`get_neighbors`/`get_edges_between`/`rank_neighbors`/`find_paths`, and answers citing real
+node ids and relation types.
+
+Available tools (`kg.py`):
+
+- `search_nodes(query, label?, limit?)` — resolve a name/symbol to node id(s)
+- `get_node(node_id)` — full properties for one node
+- `get_neighbors(node_id, relation?, limit?)` — edges touching a node
+- `rank_neighbors(node_id, relation?, sort_by?, top_n?)` — neighbors sorted by a numeric
+  property (e.g. `evidence_score`), for "strongest"/"top" questions
+- `get_edges_between(id_a, id_b)` — direct edges between two known ids
+- `find_paths(id_a, id_b, max_hops?)` — capped BFS for an indirect connection between two
+  ids when there's no direct edge
+- `graph_stats()` — node/relation type counts
 
 ## Files
 
